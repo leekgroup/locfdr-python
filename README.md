@@ -11,6 +11,6 @@ Usage:
 
 from locfdr import locfdr
 
-# Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/locfdr.pdf .
+\# Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/locfdr.pdf .
 
 locfdr(zz, bre=120, df=7, pct=0, pct0=1/4, nulltype=1, type=0, plot=1, mult, mlests, main=" ", sw=0)
