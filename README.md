@@ -7,6 +7,8 @@ This port is very literal interpretation of the augmented version of locfdr at h
 
 Requirements: latest versions of scipy, numpy, matplotlib, pandas, and statsmodels as of September 14, 2013. The code was tested on Anaconda, which contains these packages: https://store.continuum.io/cshop/anaconda/.
 
+Installation: (will use distutils)
+
 Usage:
 
 from locfdr import locfdr
