@@ -188,7 +188,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		p0 = mlests[2]
 		f0 = np.array([stats.norm.pdf(el, delhat, sighat) for el in x])
 		f0 = (sum(f) * f0) / sum(f0)
-	fdr = np.array([min(p0*f0/el, 1) for el in f])
+	fdr = np.array([min(el, 1) for el in (p0 * (f0 / f)])
 	f00 = np.exp(-np.power(x, 2) / 2)
 	f00 = (f00 * sum(f)) / sum(f00)
 	p0theo = sum([f0[i] for i in i0]) / sum([f00[i] for i in i0])
@@ -202,5 +202,97 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	Fdrl = F0l / Fl
 	Fdrr = (F0r / Fr)[::-1]
 	Int = (1 - fdr) * f * (fdr < 0.9)
-
+	if np.any([x[i] <= xmax and fdr[i] == 1 for i in xrange(len(fdr))]):
+		xxlo = min([el for i,el in enumerate(x) if el <= xmax and fdr[i] == 1])
+	else:
+		xxlo = xmax
+	if np.any([x[i] >= xmax and fdr[i] == 1 for i in xrange(len(fdr))]):
+		xxhi = max([el for i,el in enumerate(x) if el >= xmax and fdr[i] == 1])
+	else:
+		xxhi = xmax
+	indextest = [i for i,el in enumerate(x) if el >= xxlo and el <= xxhi]
+	if len(indextest) > 0:
+		for i in indextest:
+			fdr[i] = 1
+	indextest2 = [i for i,el in enumerate(x) if el <= xmax and fdr0[i] == 1]
+	if len(indextest2) > 0:
+		xxlo = min([x[i] for i in indextest2])
+	else:
+		xxlo = xmax
+	indextest3 = [i for i,el in enumerate(x) if el >= xmax and fdr0[i] == 1]
+	if len(indextest3) > 0:
+		xxhi = max([x[i] for i in indextest3])
+	else:
+		xxhi = xmax
+	if len(indextest) > 0:
+		for i in indextest:
+			fdr0[i] = 1
+	if nulltype == 1:
+		indextest4 = [i for i,el in enumerate(x) if el >= mlests[0] - mlests[1] and el <= mlests[0] + mlests[1]]
+		for i in indextest4:
+			fdr[i] = 1
+			fdr0[i] = 1
+	p1 = sum((1 - fdr) * f) / N
+	p1theo = sum((1 - fdr0) * f) / N
+	fall = f * (yall - y)
+	Efdr = sum((1 - fdr) * fdr * fall) / sum((1 - fdr) * fall)
+	Efdrtheo = sum((1 - fdr0) * fdr0 * fall) / sum((1 - fdr0) * fall)
+	iup = [i for i,el in enumerate(x) if x >= xmax]
+	ido = [i for i,el in enumerate(x) if x <= xmax]
+	fdrido = np.array([fdr[i] for i in ido])
+	fallido = np.array([fall[i] for i in ido])
+	fdr0ido = np.array([fdr0[i] for i in ido])
+	fdriup = np.array([fdr[i] for i in iup])
+	falliup = np.array([fall[i] for i in iup])
+	fdr0iup = np.array([fdr0[i] for i in iup])
+	Eleft = sum((1 - fdrido) * fdrido * fallido) / sum((1 - fdrido) * fallido)
+    Eleft0 = sum((1 - fdr0ido) * fdr0ido * fallido)/sum((1 - fdr0ido) * fallido)
+    Eright = sum((1 - fdriup) * fdriup * falliup)/sum((1 - fdriup) * falliup)
+    Eright0 = sum((1 - fdr0iup) * fdr0iup * falliup)/sum((1 - fdr0iup) * falliup)
+    Efdr = np.array([Efdr, Eleft, Eright, Efdrtheo, Eleft0, Eright0])
+    for i,el in enumerate(Efdr):
+    	if pd.isnull(el):
+    		Efdr[i] = 1
+    Efdr = pd.Series(Efdr, index=['Efdr', 'Eleft', 'Eright', 'Efdrtheo', 'Eleft0', 'Eright0'])
+    if nulltype == 0:
+    	f1 = (1 - fdr0) * fall
+    else:
+    	f1 = (1 - fdr) * fall
+    if mult != None:
+    	try:
+    		mul = np.ones(len(mult) + 1)
+    		mul[1:] = mult
+    	except TypeError:
+    		mul = np.array([1, mult])
+    	EE = np.zeros(len(mul))
+    	for m in xrange(len(EE)):
+    		xe = np.sqrt(mul[m]) * x
+    		holder = {}
+    		for i,el in enumerate(xe):
+    			if not holder.has_key(el):
+    				holder[el] = []
+    			holder[el].append(f1[i])
+    		together = []
+    		for key in holder:
+    			together.append([key, np.mean(holder[key])])
+    		together.sort(key=lambda lam: lam[0])
+    		together = np.array(together).transpose()
+    		f1e = sp.interpolate.interp1d(together[0, :], together[1, :], bounds_error = False)(x)
+    		for i,el in x:
+    			if el > together[0, -1]:
+    				f1e[i] = together[1, -1]
+    			elif el < together[0, 0]:
+    				f1e[i] = together[1, 0]
+    		f1e = (f1e * sum(f1)) / sum(f1e)
+    		f0e = f0
+    		p0e = p0
+    		if nulltype == 0:
+    			f0e = f00
+    			p0e = p0theo
+    		fdre = (p0e * f0e) / (p0e * f0e + f1e)
+    		Ee[m] = sum(f1e * fdre) / sum(f1e)
+    	EE = EE / EE[0]
+    	EE = pd.Series(EE, index=mult)
+    Cov2_out = loccov2(X, X0, i0, f, fp0.loc('cmest'), N)
+    Cov0_out = loccov2(x, )
 
