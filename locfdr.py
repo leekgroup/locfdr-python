@@ -140,46 +140,46 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			X0[1, :] = np.power(xsubtract2, 2)
 			X0[2, :] = [max(el, 0)*max(el, 0) for el in xsubtract2]
 			sigs = np.array([1/np.sqrt(-2*co[1]), 1/np.sqrt(-2*(co[1]+co[2]))])
-			fp0.loc['cmest', 0] = xmax
-			fp0.loc['cmest', 1] = sigs[0]
-			fp0.loc['cmest', 3] = sigs[1]
+			fp0.loc['cmest'][0] = xmax
+			fp0.loc['cmest'][1] = sigs[0]
+			fp0.loc['cmest'][3] = sigs[1]
 		else:
 			X0[1, :] = xsubtract2
-			X0[2, :] = np.power(xsuxfxbtract2, 2)
+			X0[2, :] = np.power(xsubtract2, 2)
 			xmaxx = -co[1] / (2 * co[2]) + xmax
 			sighat = 1 / np.sqrt(-2 * co[2])
-			fp0.loc('cmest', 0:2) = [xmaxx, sighat]
+			fp0.loc['cmest'][0,1] = [xmaxx, sighat]
 		X0 = X0.transpose()
 		l0 = np.array((X0 * np.matrix(co).transpose()).transpose())[0]
 		f0 = np.exp(l0)
 		p0 = sum(f0) / float(sum(f))
 		f0 = f0 / p0
-		fp0.loc('cmest', 2) = p0
-	b = 4.2 * np.exp(-0.26 * np.log10(N))
+		fp0.loc['cmest'][2] = p0
+	b = 4.3 * np.exp(-0.26 * np.log10(N))
 	if mlests == None:
 		med = np.median(zz)
 		sc = (np.percentile(zz, 75) - np.percentile(zz, 25)) / (2 * stats.norm.ppf(.75))
-		mlests = locmle(zz, xlim = np.array([med, b * sc]))
+		mlests = lf.locmle(zz, xlim = np.array([med, b * sc]))
 		if N > 5e05:
 			if verbose:
 				warnings.warn("length(zz) > 500,000: an interval wider than the optimal one was used for maximum likelihood estimation. To use the optimal interval, rerun with mlests = [" + str(mlests[0]) + ", " + str(b * mlests[1]) + "].")
 			mlest_lo = mlests[0]
 			mlest_hi = b * mlests[1]
 			needsfix = 1
-			mlests = locmle(zz, xlim = [med, sc])
-	if not pd.isnull(mlests):
+			mlests = lf.locmle(zz, xlim = [med, sc])
+	if not pd.isnull(mlests[0]):
 		if N > 5e05:
 			b = 1
 		if nulltype == 1:
-			Cov_in = {'x' : x, 'X' = X, 'f' = f, 'sw' = sw}
-			ml_out = locmle(zz, xlim = [mlests[0], mlests[1]], d = mlests[0], s = mlests[1], Cov_in = Cov_in)
+			Cov_in = {'x' : x, 'X' : X, 'f' : f, 'sw' : sw}
+			ml_out = lf.locmle(zz, xlim = [mlests[0], b * mlests[1]], d = mlests[0], s = mlests[1], Cov_in = Cov_in)
 			mlests = ml_out['mle']
 		else:
-			mlests = locmle(zz, xlim = [mlests[0], b * mlests[1]], d = mlests[0], s = mlests[1])
-		fp0.loc('mlest', 0:3) = mlests[0:3]
-		fp0.loc('mleSD', 0:3) = mlests[3:6]
-	if (not (pd.isnull(fp0.loc['mlest',0]) or pd.isnull(fp0.loc['mlest',1]) or pd.isnull(fp0.loc['cmest',0]) or pd.isnull(fp0.loc['cmest',1]))) and nulltype > 1:
-		if abs(fp0.loc['cmest',0] - mlests[0]) > 0.05 or abs(np.log(fp0['cmest', 1] / mlests[1])) > 0.05:
+			mlests = lf.locmle(zz, xlim = [mlests[0], b * mlests[1]], d = mlests[0], s = mlests[1])
+		fp0.loc['mlest'][0:3] = mlests[0:3]
+		fp0.loc['mleSD'][0:3] = mlests[3:6]
+	if (not (pd.isnull(fp0.loc['mlest'][0]) or pd.isnull(fp0.loc['mlest'][1]) or pd.isnull(fp0.loc['cmest'][0]) or pd.isnull(fp0.loc['cmest'][1]))) and nulltype > 1:
+		if abs(fp0.loc['cmest'][0] - mlests[0]) > 0.05 or abs(np.log(fp0.loc['cmest'][1] / mlests[1])) > 0.05:
 			warnings.warn("Discrepancy between central matching and maximum likelihood estimates. Consider rerunning with nulltype = 1.")
 	if pd.isnull(mlests[0]):
 		if nulltype == 1:
@@ -201,7 +201,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	f00 = np.exp(-np.power(x, 2) / 2)
 	f00 = (f00 * sum(f)) / sum(f00)
 	p0theo = sum([f0[i] for i in i0]) / sum([f00[i] for i in i0])
-	fp0.loc['thest', 2] = p0theo
+	fp0.loc['thest'][2] = p0theo
 	fdr0 = np.array([min(el, 1) for el in ((p0theo * f00) / f)])
 	f0p = p0 * f0
 	if nulltype == 0:
@@ -300,7 +300,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
     else:
     	Cov = Cov2_out['Cov']
     lfdrse = np.sqrt(np.diag(Cov))
-    fp0.loc['cmeSD', 0:3] = Cov2_out['stdev', [1, 2, 0]]
+    fp0.loc['cmeSD'][0:3] = Cov2_out['stdev', [1, 2, 0]]
     if nulltype == 3:
     	fp0['cmeSD', 3] = fp0['cmeSD', 1]
     fp0['theSD', 2] = Cov0_out['stdev'][0]
@@ -348,4 +348,4 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
     	nulldens = p0theo * f00
     else:
     	nulldens = p0 * f0
-    yt = 
+    yt = np.array([max(el, 0) for el in (yall * (1 - fd))])
