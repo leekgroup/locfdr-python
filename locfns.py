@@ -88,7 +88,7 @@ def locmle(z, xlim = None, Jmle = 35, d = 0., s = 1., ep = 1/100000., sw = 0, Co
 			i0 = [i for i,x in enumerate(Cov_in['x']) if x > aa and x < bb]
 			Cov_out = loccov(N, N0, p0, d, s, Cov_in['x'], Cov_in['X'], Cov_in['f'], JV, Y, i0, H, h, Cov_in['sw'])
     #label with pandas Series
-    mle = pd.Series([mle[[1,2,0,4,5,3]], index=['del0', 'sig0', 'p0', 'sd.del0', 'sd.sig0', 'sd.p0'])
+    mle = pd.Series([mle[[1,2,0,4,5,3]], index=['del0', 'sig0', 'p0', 'sd_del0', 'sd_sig0', 'sd_p0'])
     out = {}
     out['mle'] = mle
     if sw == 1:
@@ -101,7 +101,7 @@ def locmle(z, xlim = None, Jmle = 35, d = 0., s = 1., ep = 1/100000., sw = 0, Co
     	else:
     		out['Cov_lfdr'] = Cov_out
     if sw == 1 or Cov_in is not None:
-    	return out
+    	return pd.Series(out)
     return mle
 
 def loccov(N, N0, p0, d, s, x, X, f, JV, Y, i0, H, h, sw):
@@ -164,5 +164,5 @@ def loccov2(X, X0, i0, f, ests, N):
 	pds_[0,:] = p0 * pds_[0,:]
 	#pandas dataframe for labeling
 	pds_ = pd.DataFrame(pds_, index=['p', 'd','s'])
-	return {'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : stdev, 'Cov' : Cov}
+	return pd.Series({'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : stdev, 'Cov' : Cov})
 

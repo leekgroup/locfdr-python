@@ -20,6 +20,15 @@ class EstimationError(Error):
         self.expr = expr
         self.msg = msg
 
+class InputError(Error):
+    """Exception raised for errors in the input.
+	Attributes:
+        expr---input expression in which the error occurred
+        msg---explanation of the error"""
+    def __init__(self, expr, msg):
+        self.expr = expr
+        self.msg = msg
+
 def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0, plot = 1, mult = None, mlests = None, main = ' ', sw = 0, verbose = True):
 	"""ignore R match.call()"""
 	zz = np.array(zz)
@@ -216,12 +225,12 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			fdr[i] = 1
 	indextest2 = [i for i,el in enumerate(x) if el <= xmax and fdr0[i] == 1]
 	if len(indextest2) > 0:
-		xxlo = min([x[i] for i in indextest2])
+		xxlo = min(x[indextest2])
 	else:
 		xxlo = xmax
 	indextest3 = [i for i,el in enumerate(x) if el >= xmax and fdr0[i] == 1]
 	if len(indextest3) > 0:
-		xxhi = max([x[i] for i in indextest3])
+		xxhi = max([x[indextest3])
 	else:
 		xxhi = xmax
 	if len(indextest) > 0:
@@ -237,18 +246,12 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	fall = f * (yall - y)
 	Efdr = sum((1 - fdr) * fdr * fall) / sum((1 - fdr) * fall)
 	Efdrtheo = sum((1 - fdr0) * fdr0 * fall) / sum((1 - fdr0) * fall)
-	iup = [i for i,el in enumerate(x) if x >= xmax]
-	ido = [i for i,el in enumerate(x) if x <= xmax]
-	fdrido = np.array([fdr[i] for i in ido])
-	fallido = np.array([fall[i] for i in ido])
-	fdr0ido = np.array([fdr0[i] for i in ido])
-	fdriup = np.array([fdr[i] for i in iup])
-	falliup = np.array([fall[i] for i in iup])
-	fdr0iup = np.array([fdr0[i] for i in iup])
-	Eleft = sum((1 - fdrido) * fdrido * fallido) / sum((1 - fdrido) * fallido)
-    Eleft0 = sum((1 - fdr0ido) * fdr0ido * fallido)/sum((1 - fdr0ido) * fallido)
-    Eright = sum((1 - fdriup) * fdriup * falliup)/sum((1 - fdriup) * falliup)
-    Eright0 = sum((1 - fdr0iup) * fdr0iup * falliup)/sum((1 - fdr0iup) * falliup)
+	iup = [i for i,el in enumerate(x) if el >= xmax]
+	ido = [i for i,el in enumerate(x) if el <= xmax]
+	Eleft = sum((1 - fdr[ido]) * fdr[ido] * fall[ido]) / sum((1 - fdr[ido]) * fall[ido])
+    Eleft0 = sum((1 - fdr0[ido]) * fdr0[ido] * fall[ido])/sum((1 - fdr0[ido]) * fall[ido])
+    Eright = sum((1 - fdr[iup]) * fdr[iup] * fall[iup])/sum((1 - fdr[iup]) * fall[iup])
+    Eright0 = sum((1 - fdr0[iup]) * fdr0[iup] * fall[iup])/sum((1 - fdr0[iup]) * fall[iup])
     Efdr = np.array([Efdr, Eleft, Eright, Efdrtheo, Eleft0, Eright0])
     for i,el in enumerate(Efdr):
     	if pd.isnull(el):
@@ -267,22 +270,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
     	EE = np.zeros(len(mul))
     	for m in xrange(len(EE)):
     		xe = np.sqrt(mul[m]) * x
-    		holder = {}
-    		for i,el in enumerate(xe):
-    			if not holder.has_key(el):
-    				holder[el] = []
-    			holder[el].append(f1[i])
-    		together = []
-    		for key in holder:
-    			together.append([key, np.mean(holder[key])])
-    		together.sort(key=lambda lam: lam[0])
-    		together = np.array(together).transpose()
-    		f1e = sp.interpolate.interp1d(together[0, :], together[1, :], bounds_error = False)(x)
-    		for i,el in x:
-    			if el > together[0, -1]:
-    				f1e[i] = together[1, -1]
-    			elif el < together[0, 0]:
-    				f1e[i] = together[1, 0]
+    		f1e = rf.approx(xe, f1, x, rule = 2, ties = 'mean')
     		f1e = (f1e * sum(f1)) / sum(f1e)
     		f0e = f0
     		p0e = p0
@@ -294,5 +282,70 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
     	EE = EE / EE[0]
     	EE = pd.Series(EE, index=mult)
     Cov2_out = loccov2(X, X0, i0, f, fp0.loc('cmest'), N)
-    Cov0_out = loccov2(x, )
-
+    Cov0_out = loccov2(X, np.ones((len(x), 1)), i0, f, fp0.loc('thest'), N)
+    if sw == 3:
+    	if nulltype == 0:
+    		Ilfdr = Cov0_out['Ilfdr']
+    	elif nulltype = 1:
+    		Ilfdr = ml_out['Ilfdr']
+    	elif nulltype == 2:
+    		Ilfdr = Cov2_out['Ilfdr']
+    	else:
+    		raise InputError('if sw == 3', 'When sw = 3, nulltype must be 0, 1, or 2.')
+    	return Ilfdr
+    if nulltype == 0:
+    	Cov = Cov0_out['Cov']
+    elif nulltype == 1:
+    	Cov = ml_out['Cov_lfdr']
+    else:
+    	Cov = Cov2_out['Cov']
+    lfdrse = np.sqrt(np.diag(Cov))
+    fp0.loc['cmeSD', 0:3] = Cov2_out['stdev', [1, 2, 0]]
+    if nulltype == 3:
+    	fp0['cmeSD', 3] = fp0['cmeSD', 1]
+    fp0['theSD', 2] = Cov0_out['stdev'][0]
+    if sw == 2:
+    	if nulltype == 0:
+    		pds = fp0['thest', [2, 0, 1]]
+    		stdev = fp0['theSD', [2, 0, 1]]
+    		pds_ = Cov0_out['pds_']
+    	elif nulltype == 1:
+    		pds = fp0['mlest', [2, 0, 1]]
+    		stdev = fp0['mleSD', [2, 0, 1]]
+    		pds_ = ml_out['pds_']
+    	elif nulltype == 2:
+    		pds = fp0['cmest', [2, 0, 1]]
+    		stdev = fp0['cmeSD', [2, 0, 1]]
+    		pds_ = Cov2_out['pds_']
+    	else:
+    		raise InputError('if sw == 2', 'With sw = 2, nulltype must equal 0, 1, or 2.')
+    	pds_ = pd.Series(pds_, index=['p0', 'delhat', 'sighat'])
+    	pds = pd.Series(pds.tolist(), index=['p0', 'delhat', 'sighat'])
+    	stdev = pd.Series(stdev.tolist(), index=['sdp0', 'sddelhat', 'sdsighat'])
+    	return pd.Series({'pds': pds, 'x': x, 'f': f, 'pds_' : pds_, 'stdev' : stdev})
+    p1 = np.arange(0.01, 1, 0.01)
+    cdf1 = np.zeros((1,99))
+    cdf1[0, :] = p1
+    fd = fdr
+    if nulltype == 0:
+    	fd = fdr0
+    for i in xrange(99):
+    	cdf1[1, i] = np.sum([el for j,el in enumerate(f1) if fd[j] <= p1[i]])
+    cdf1[1, :] = cdf1[1, :] / cdf[1, -1]
+    cdf1 = cdf1.transpose()
+    mat = np.vstack((x, fdr, Fdrl, Fdrr, f, f0, f00, fdr0, yall, lfdrse, f1))
+    if nulltype != 0:
+    	mat = pd.DataFrame(mat, index=['x', 'fdr', 'Fdrleft', 'Fdrright', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrse', 'p1f1'])
+    else:
+    	mat = pd.DataFrame(mat, index=['x', 'fdr', 'Fdrltheo', 'Fdrrtheo', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrsetheo', 'p1f1'])
+    z_2 = np.array([np.nan, np.nan])
+    m = fd.tolist().index(max(fd))
+    if fd[-1] < 0.2:
+    	z_2[1] = approx(fd[m:], x[m:], 0.2, ties='mean')
+    if fd[0] < 0.2:
+    	z_2[0] = approx(fd[0:m], x[0:m], 0.2, ties = 'mean')
+    if nulltype == 0:
+    	nulldens = p0theo * f00
+    else:
+    	nulldens = p0 * f0
+    yt = 
