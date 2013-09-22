@@ -21,7 +21,7 @@ Usage:
     # Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf 
     results = locfdr(zz)
 
-Example usage: start Python, and enter
+Example usage: start the Python interpreter, and enter
 
     >>> execfile('example.py')
     
