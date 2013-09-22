@@ -23,7 +23,7 @@ Usage
     # Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf 
     results = locfdr(zz)
 
-R vs. Python usage
+R vs. Python
 ------------------
 
 The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that period is replaced by an underscore in the Python. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)
