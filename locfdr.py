@@ -197,10 +197,10 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		p0 = mlests[2]
 		f0 = np.array([stats.norm.pdf(el, delhat, sighat) for el in x])
 		f0 = (sum(f) * f0) / sum(f0)
-	fdr = np.array([min(el, 1) for el in (p0 * (f0 / f)])
+	fdr = np.array([min(el, 1) for el in (p0 * (f0 / f))])
 	f00 = np.exp(-np.power(x, 2) / 2)
 	f00 = (f00 * sum(f)) / sum(f00)
-	p0theo = sum([f0[i] for i in i0]) / sum([f00[i] for i in i0])
+	p0theo = sum(f[i0]) / sum(f00[i0])
 	fp0.loc['thest'][2] = p0theo
 	fdr0 = np.array([min(el, 1) for el in ((p0theo * f00) / f)])
 	f0p = p0 * f0
@@ -221,29 +221,27 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		xxhi = xmax
 	indextest = [i for i,el in enumerate(x) if el >= xxlo and el <= xxhi]
 	if len(indextest) > 0:
-		for i in indextest:
-			fdr[i] = 1
-	indextest2 = [i for i,el in enumerate(x) if el <= xmax and fdr0[i] == 1]
-	if len(indextest2) > 0:
-		xxlo = min(x[indextest2])
+		fdr[indextest] = 1
+	indextest = [i for i,el in enumerate(x) if el <= xmax and fdr0[i] == 1]
+	if len(indextest) > 0:
+		xxlo = min(x[indextest])
 	else:
 		xxlo = xmax
-	indextest3 = [i for i,el in enumerate(x) if el >= xmax and fdr0[i] == 1]
-	if len(indextest3) > 0:
-		xxhi = max([x[indextest3])
+	indextest = [i for i,el in enumerate(x) if el >= xmax and fdr0[i] == 1]
+	if len(indextest) > 0:
+		xxhi = max(x[indextest])
 	else:
 		xxhi = xmax
+	indextest = [i for i,el in enumerate(x) if el >= xxlo and el <= xxhi]
 	if len(indextest) > 0:
-		for i in indextest:
-			fdr0[i] = 1
+		fdr0[indextest] = 1
 	if nulltype == 1:
-		indextest4 = [i for i,el in enumerate(x) if el >= mlests[0] - mlests[1] and el <= mlests[0] + mlests[1]]
-		for i in indextest4:
-			fdr[i] = 1
-			fdr0[i] = 1
+		indextest = [i for i,el in enumerate(x) if el >= mlests[0] - mlests[1] and el <= mlests[0] + mlests[1]]
+		fdr[indextest] = 1
+		fdr0[indextest] = 1
 	p1 = sum((1 - fdr) * f) / N
 	p1theo = sum((1 - fdr0) * f) / N
-	fall = f * (yall - y)
+	fall = f + (yall - y)
 	Efdr = sum((1 - fdr) * fdr * fall) / sum((1 - fdr) * fall)
 	Efdrtheo = sum((1 - fdr0) * fdr0 * fall) / sum((1 - fdr0) * fall)
 	iup = [i for i,el in enumerate(x) if el >= xmax]
@@ -278,11 +276,11 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
     			f0e = f00
     			p0e = p0theo
     		fdre = (p0e * f0e) / (p0e * f0e + f1e)
-    		Ee[m] = sum(f1e * fdre) / sum(f1e)
+    		EE[m] = sum(f1e * fdre) / sum(f1e)
     	EE = EE / EE[0]
     	EE = pd.Series(EE, index=mult)
-    Cov2_out = loccov2(X, X0, i0, f, fp0.loc('cmest'), N)
-    Cov0_out = loccov2(X, np.ones((len(x), 1)), i0, f, fp0.loc('thest'), N)
+    Cov2_out = lf.loccov2(X, X0, i0, f, fp0.loc['cmest'], N)
+    Cov0_out = lf.loccov2(X, np.ones((len(x), 1)), i0, f, fp0.loc['thest'], N)
     if sw == 3:
     	if nulltype == 0:
     		Ilfdr = Cov0_out['Ilfdr']

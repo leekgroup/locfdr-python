@@ -148,30 +148,34 @@ def loccov2(X, X0, i0, f, ests, N):
 	d = ests[0]
 	s = ests[1]
 	p0 = ests[2]
-	theo = len(X0[0])==1
+	theo = (len(X0[0]) == 1)
 	Xtil = X[i0,:]
 	X0til = X0[i0,:]
-	G = X.transpose() * (f * X)
+	X = np.matrix(X)
+	fholder = np.matrix([f for k in xrange(X.shape[1])]).transpose()
+	G = X.transpose() * np.multiply(fholder, X)
+	X0til = np.matrix(X0til)
 	G0 = X0til.transpose() * X0til
 	B0 = X0 * (np.linalg.inv(G0) * X0til.transpose()) * Xtil
 	C = B0 - X
 	Ilfdr = C * np.linalg.solve(G, X.transpose())
 	Cov = C * np.linalg.inv(G) * C.transpose()
 	if theo:
-		D = np.matrix([[1,1,1]])
+		D = np.matrix([[1,1,1]], dtype=np.float64)
 	else:
-		D = np.matrix([[1,d,s*s, s*s+d*d], [0, s*s, 2*d*s*s], [0, 0, s*s*s]])
+		D = np.matrix([[1, d, s*s+d*d], [0, s*s, 2*d*s*s], [0, 0, s*s*s]], dtype=np.float64)
 	gam_ = np.linalg.solve(G0, X0til.transpose()) * (Xtil * np.linalg.solve(G, X.transpose()))
 	pds_ = D * gam_
 	if theo:
 		pds_ = np.append(pds_, [[0, 2, len(X)]], axis=0)
-	pds_[0,:] = pds_[0,:] - 1/N
-	m1 = pds_ * f
-	m2 = (pds_*pds_) * f
-	stdev = np.sqrt(m2 - np.power(m2) / N)
-	stdev[0] = p0 * stdev[1]
+	pds_[0,:] = pds_[0,:] - 1./N
+	f = np.matrix(f)
+	m1 = pds_ * f.transpose()
+	m2 = np.power(pds_, 2) * f.transpose()
+	stdev = np.sqrt(m2 - np.power(m1, 2) / float(N))
+	stdev[0] = p0 * stdev[0]
 	pds_[0,:] = p0 * pds_[0,:]
-	#pandas dataframe for labeling
+	# pandas dataframe for labeling
 	pds_ = pd.DataFrame(pds_, index=['p', 'd','s'])
-	return pd.Series({'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : stdev, 'Cov' : Cov})
+	return pd.Series({'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : np.array(stdev.transpose())[0], 'Cov' : np.array(Cov)[0]})
 
