@@ -17,11 +17,32 @@ Download ZIP (button on right at https://github.com/buci/locfdr-python/), unzip 
 
 
 Usage
-------------------
+-----------------
 
     from locfdr import locfdr
     # Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf 
     results = locfdr(zz)
+
+R vs. Python usage
+------------------
+
+The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that period is replaced by an underscore in the Python. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)
+
+To access returned values:
+
+(R)
+
+    results = locfdr(...)
+    results$fdr
+    results$z.2
+	
+(Corresponding Python)
+
+    results = locfdr(...)
+    results['fdr']
+    results['z_2']
+
+Some returned values are pandas Series and DataFrames. An introduction to pandas data structures is available at http://pandas.pydata.org/pandas-docs/dev/dsintro.html .
 
 Example usage
 ------------------
