@@ -7,9 +7,7 @@ def locmle(z, xlim = None, Jmle = 35, d = 0., s = 1., ep = 1/100000., sw = 0, Co
 	"""Uses z-values in [-xlim,xlim] to find mles for p0, del0, sig0
 	Jmle number of iterations, beginning at (del0, sig0) = (d, s)
 	sw=1 returns correlation matrix
-	z can be a numpy/scipy array or an ordinary Python array
-	missing values in z and xlim are not accommodated, unlike in R version
-	(R and pandas don't appear to handle missing values the same way)"""
+	z can be a numpy/scipy array or an ordinary Python array"""
 	N = len(z)
 	if xlim is None:
 		if N > 500000:
@@ -49,15 +47,17 @@ def locmle(z, xlim = None, Jmle = 35, d = 0., s = 1., ep = 1/100000., sw = 0, Co
 		bett = bet + addbet
 		if bett[1] > 0:
 			bett = bet + .1 * addbet
-		if bett[1] >= 0:
+		if pd.isnull(bett[1]) or bett[1] >= 0:
 			break
 		d = -bett[0]/(2 * bett[1])
 		s = 1 / np.sqrt(-2. * bett[1])
 		if np.sqrt(sum(np.array(np.power(bett - bet, 2)))) < ep:
 			break
-	if bett[1] >= 0:
-		mle = [np.nan, 6]
+	if pd.isnull(bett[1]) or bett[1] >= 0:
+		mle = np.array([np.nan for k in xrange(6)])
 		Cov_lfdr = np.nan
+		if pd.isnull(bett[1]):
+			Cov_out = np.nan
 		Cor = np.matrix([[np.nan]*3]*3)
 	else:
 		aa = (aorig - d) / s
@@ -161,13 +161,13 @@ def loccov2(X, X0, i0, f, ests, N):
 	Ilfdr = C * np.linalg.solve(G, X.transpose())
 	Cov = C * np.linalg.inv(G) * C.transpose()
 	if theo:
-		D = np.matrix([[1,1,1]], dtype=np.float64)
+		D = np.ones((1,1))
 	else:
 		D = np.matrix([[1, d, s*s+d*d], [0, s*s, 2*d*s*s], [0, 0, s*s*s]], dtype=np.float64)
 	gam_ = np.linalg.solve(G0, X0til.transpose()) * (Xtil * np.linalg.solve(G, X.transpose()))
 	pds_ = D * gam_
 	if theo:
-		pds_ = np.append(pds_, [[0, 2, len(X)]], axis=0)
+		pds_ = np.append(pds_, np.zeros((2, X.shape[0])), axis=0)
 	pds_[0,:] = pds_[0,:] - 1./N
 	f = np.matrix(f)
 	m1 = pds_ * f.transpose()
@@ -177,5 +177,4 @@ def loccov2(X, X0, i0, f, ests, N):
 	pds_[0,:] = p0 * pds_[0,:]
 	# pandas dataframe for labeling
 	pds_ = pd.DataFrame(pds_, index=['p', 'd','s'])
-	return pd.Series({'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : np.array(stdev.transpose())[0], 'Cov' : np.array(Cov)[0]})
-
+	return pd.Series({'Ilfdr' : Ilfdr, 'pds_' : pds_, 'stdev' : np.array(stdev.transpose())[0], 'Cov' : Cov})

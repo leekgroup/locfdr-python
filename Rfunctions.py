@@ -95,7 +95,7 @@ def approx(x, y, xout, rule = 1, ties = 'ordered', tieprecision = 10):
 			reps = len(holder[key])
 			holder[key].sort()
 			for i,el in enumerate(holder[key]):
-				together.append([key-(reps-i-1)*np.power(10., -tieprecision), holder[key]])
+				together.append([key-(reps-i-1)*np.power(10., -tieprecision), el])
 	together.sort(key=lambda lam: lam[0])
 	together = np.array(together).transpose()
 	vals = sp.interpolate.interp1d(together[0, :], together[1, :], bounds_error = False)(xout)
