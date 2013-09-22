@@ -7,12 +7,22 @@ This port is very literal interpretation of the augmented version of locfdr at h
 
 Requirements: Python 2.7.x, scipy, numpy, matplotlib, pandas, and statsmodels. The code was tested on Anaconda, which contains Python 2.7.5, scipy 0.12.0, numpy 1.7.1, pandas 0.12.0, statsmodels 0.5.0, and matplotlib 1.3.0. This distribution is available at https://store.continuum.io/cshop/anaconda/.
 
-Installation: (will use distutils)
+THIS SOFTWARE IS LICENSED UNDER THE MIT LICENSE. See LICENSE.txt for more information.
+
+Installation: Download ZIP (button on right at https://github.com/buci/locfdr-python/), unzip in same directory, and run
+
+    python setup.py install
+
+.
 
 Usage:
 
-from locfdr import locfdr
+    from locfdr import locfdr
+    # Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf 
+    results = locfdr(zz)
 
-\# Initialize data here, as described in http://cran.r-project.org/web/packages/locfdr/locfdr.pdf .
+Example usage: start Python, and enter
 
-results = locfdr(zz)
+    >>> execfile('example.py')
+    
+.
