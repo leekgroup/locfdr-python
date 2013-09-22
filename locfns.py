@@ -1,13 +1,27 @@
-import numpy as np
-from scipy import stats
-from scipy.linalg import pascal
-import pandas as pd
+try:
+	import numpy as np
+except ImportError:
+	print 'numpy is required, but it was not found. locfns was tested on numpy 1.7.1.'
+	raise
+try:
+	from scipy import stats
+	from scipy.linalg import pascal
+except ImportError:
+	print 'scipy is required, but it was not found. locfns was tested on scipy 0.12.0.'
+	raise
+try:
+	import pandas as pd
+except ImportError:
+	print 'pandas is required, but it was not found. locfns was tested on pandas 0.12.0.'
+	raise
 
 def locmle(z, xlim = None, Jmle = 35, d = 0., s = 1., ep = 1/100000., sw = 0, Cov_in = None):
-	"""Uses z-values in [-xlim,xlim] to find mles for p0, del0, sig0
-	Jmle number of iterations, beginning at (del0, sig0) = (d, s)
-	sw=1 returns correlation matrix
-	z can be a numpy/scipy array or an ordinary Python array"""
+	"""Uses z-values in [-xlim,xlim] to find mles for p0, del0, sig0 .
+
+	Jmle is the number of iterations, beginning at (del0, sig0) = (d, s).
+	sw = 1 returns the correlation matrix.
+	z can be a numpy/scipy array or an ordinary Python array.
+	Note that this function returns pandas Series."""
 	N = len(z)
 	if xlim is None:
 		if N > 500000:

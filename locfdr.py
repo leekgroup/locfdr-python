@@ -1,36 +1,87 @@
+try:
+	import numpy as np
+except ImportError:
+	print 'numpy is required, but it was not found. locfdr-python was tested on numpy 1.7.1.'
+	raise
+try:
+	from scipy import stats
+except ImportError:
+	print 'scipy is required, but it was not found. locfdr-python was tested on scipy 0.12.0.'
+	raise
+try:
+	import pandas as pd
+except ImportError:
+	print 'pandas is required, but it was not found. locfdr-python was tested on pandas 0.12.0.'
+	raise
+try:
+	from statsmodels.api import families
+	from statsmodels.formula.api import glm
+except ImportError:
+	print 'statsmodels is required, but it was not found. locfdr-python was tested on statsmodels 0.5.0.'
+	raise
 import locfns as lf
-import numpy as np
-from scipy import stats
-import pandas as pd
-from statsmodels.api import families
-from statsmodels.formula.api import glm
 import Rfunctions as rf
 import warnings as wa
 import inspect as it
 
 class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
+	"""Base class for exceptions."""
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
 
 class EstimationError(Error):
-    """Exception raised for errors in estimations.
-	Attributes:
-        expr---input expression in which the error occurred
-        msg---explanation of the error"""
-    def __init__(self, expr, msg):
-        self.expr = expr
-        self.msg = msg
+	"""Exception raised for errors in estimations."""
+	pass
 
 class InputError(Error):
-    """Exception raised for errors in the input.
-	Attributes:
-        expr---input expression in which the error occurred
-        msg---explanation of the error"""
-    def __init__(self, expr, msg):
-        self.expr = expr
-        self.msg = msg
+	"""Exception raised for errors in input."""
+	pass
 
-def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0, plot = 1, mult = None, mlests = None, main = ' ', sw = 0, verbose = True):
+def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0, plot = 1, mult = None, mlests = None, 
+		main = ' ', sw = 0, verbose = True, showplot = True, saveplot = False, saveroot = 'locfdr', saveext = 'pdf', savestamp = False):
+	"""Computes local false discovery rates.
+
+	This is Abhinav Nellore's Python implementation of the R function locfdr() v1.1.7, originally written by Bradley Efron, 
+	Brit B. Turnbull, and Balasubramanian Narasimhan; and later enhanced by Alyssa Frazee and Leonardo Collado-Torres 
+	(see https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R ). It is licensed under the MIT license.
+	See LICENSE.TXT for more information.
+	
+	The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that
+	period is replaced by an underscore here. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)
+	To access returned values:
+	(in R)        --- results = locfdr(...)
+					  results$fdr
+			          results$z.2
+	(in Python)   --- results = locfdr(...)
+					  results['fdr']
+					  results['z_2']
+	Some returned values are pandas Series and DataFrames. An introduction to pandas data structures is available at
+	http://pandas.pydata.org/pandas-docs/dev/dsintro.html .
+
+	A nearly complete description of arguments and returned values may be found at 
+	http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf .
+
+	Additional arguments in this version:
+		 verbose: (True or False) --- If True, outputs warnings.
+	     showplot: (True or False) --- If True, displays plot. Ignored if plot = 0.
+	     saveplot: (True or False) --- If True, saves plot according to constraints specified by saveroot, saveext, and savestamp.
+	     							   Ignored if plot = 0.
+	     saveroot: (Any string that constitutes a valid filename.) --- Specifies prefix of file to save. Ignored if saveplot = False.
+	     saveext: (Most valid image file extensions work here. Try 'png', 'pdf', 'ps', 'eps', or 'svg'.) --- Selects file format and extension.
+	     	Ignored if saveplot = False.
+	     savestamp: (True or False) --- If True, date/timestamp is appended to filename prefix; this helps prevent overwriting old saves.
+	     	Ignored if saveplot = False.
+
+	 Additional returned values in this version:
+		yt: Heights of pink histogram bars that appear on the plots (i.e., heights of alt. density's histogram).
+		x: Locations of pinkfl histogram bars that appear on the plots (locations of alt. density's histogram).
+		mlest_lo AND mlest_hi: If the function outputs a warning message that reads "please rerun with mlest parameters = ...",
+			these parameters are contained in mlest_lo and mlest_hi .
+		needsfix: 1 if a rerun warning is output; otherwise 0.
+		nulldens: y-values of estimated null distribution density.
+		nulldens: y-values of estimated full (mixture) density."""
 	call = it.stack()
 	zz = np.array(zz)
 	mlest_lo = None
@@ -75,12 +126,14 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		basismatrix = rf.ns(x, df)
 		X = np.ones((basismatrix.shape[0], basismatrix.shape[1]+1), dtype=np.float64)
 		X[:, 1:] = basismatrix
-		f = glm("y ~ basismatrix", data = dict(y=np.matrix(y).transpose(), basismatrix=basismatrix), family=families.Poisson()).fit().fittedvalues
+		f = glm("y ~ basismatrix", data = dict(y=np.matrix(y).transpose(), basismatrix=basismatrix), 
+				family=families.Poisson()).fit().fittedvalues
 	else:
 		basismatrix = rf.poly(x, df)
 		X = np.ones((basismatrix.shape[0], basismatrix.shape[1]+1), dtype=np.float64)
 		X[:, 1:] = basismatrix
-		f = glm("y ~ basismatrix", data = dict(y=np.matrix(y).transpose(), basismatrix=basismatrix), family=families.Poisson()).fit().fittedvalues
+		f = glm("y ~ basismatrix", data = dict(y=np.matrix(y).transpose(), basismatrix=basismatrix), 
+			family=families.Poisson()).fit().fittedvalues
 	fulldens = f
 	l = np.log(f)
 	Fl = f.cumsum()
@@ -90,9 +143,11 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	if D > 1.5:
 		wa.warn("f(z) misfit = " + str(round(D,1)) + ". Rerun with larger df.")
 	if nulltype == 3:
-		fp0 = pd.DataFrame(np.zeros((6,4)).fill(np.nan), index=['thest', 'theSD', 'mlest', 'mleSD', 'cmest', 'cmeSD'], columns=['delta', 'sigleft', 'p0', 'sigright'])
+		fp0 = pd.DataFrame(np.zeros((6,4)).fill(np.nan), index=['thest', 'theSD', 'mlest', 'mleSD', 'cmest', 'cmeSD'], 
+			columns=['delta', 'sigleft', 'p0', 'sigright'])
 	else:
-		fp0 = pd.DataFrame(np.zeros((6,3)).fill(np.nan), index=['thest', 'theSD', 'mlest', 'mleSD', 'cmest', 'cmeSD'], columns=['delta', 'sigma', 'p0'])
+		fp0 = pd.DataFrame(np.zeros((6,3)).fill(np.nan), index=['thest', 'theSD', 'mlest', 'mleSD', 'cmest', 'cmeSD'], 
+			columns=['delta', 'sigma', 'p0'])
 	fp0.loc['thest'][0:2] = np.array([0,1])
 	fp0.loc['theSD'][0:2] = 0
 	imax = np.where(max(l)==l)[0][0]
@@ -121,12 +176,11 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	X00 = X00.transpose()
 	co = glm("y0 ~ X00", data = dict(y0=y0, X00=X00)).fit().params
 	# these errors may not be necessary
-	cmestloc = 'co = glm("y0 ~ X00", data = dict(y0=y0, X00=X00)).fit().params'
 	if nulltype == 3 and ((pd.isnull(co[1]) or pd.isnull(co[2])) or (co[1] >= 0 or co[1] + co[2] >= 0)):
-			raise EstimationError(cmestloc, 'CM estimation failed. Rerun with nulltype = 1 or 2.')
+			raise EstimationError('CM estimation failed. Rerun with nulltype = 1 or 2.')
 	elif pd.isnull(co[2]) or co[2] >= 0:
 		if nulltype == 2:
-			raise EstimationError(cmestloc, 'CM estimation failed. Rerun with nulltype = 1.')
+			raise EstimationError('CM estimation failed. Rerun with nulltype = 1.')
 		elif nulltype != 3:
 			xsubtract2 = x - xmax
 			X0 = np.ones((3, len(xsubtract2)))
@@ -163,7 +217,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		mlests = lf.locmle(zz, xlim = np.array([med, b * sc]))
 		if N > 5e05:
 			if verbose:
-				wa.warn("length(zz) > 500,000: an interval wider than the optimal one was used for maximum likelihood estimation. To use the optimal interval, rerun with mlests = [" + str(mlests[0]) + ", " + str(b * mlests[1]) + "].")
+				wa.warn('length(zz) > 500,000: an interval wider than the optimal one was used for maximum likelihood estimation. To use the optimal interval, rerun with mlests = [' + str(mlests[0]) + ', ' + str(b * mlests[1]) + '].')
 			mlest_lo = mlests[0]
 			mlest_hi = b * mlests[1]
 			needsfix = 1
@@ -181,13 +235,13 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		fp0.loc['mleSD'][0:3] = mlests[3:6]
 	if (not (pd.isnull(fp0.loc['mlest'][0]) or pd.isnull(fp0.loc['mlest'][1]) or pd.isnull(fp0.loc['cmest'][0]) or pd.isnull(fp0.loc['cmest'][1]))) and nulltype > 1:
 		if abs(fp0.loc['cmest'][0] - mlests[0]) > 0.05 or abs(np.log(fp0.loc['cmest'][1] / mlests[1])) > 0.05:
-			wa.warn("Discrepancy between central matching and maximum likelihood estimates. Consider rerunning with nulltype = 1.")
+			wa.warn('Discrepancy between central matching and maximum likelihood estimates. Consider rerunning with nulltype = 1.')
 	if pd.isnull(mlests[0]):
 		if nulltype == 1:
 			if pd.isnull(fp0.loc['cmest', 1]):
-				raise EstimationError('pd.isnull(fp0.loc[\'cmest\', 1])', 'CM and ML estimation failed; middle of histogram is nonnormal.')
+				raise EstimationError('CM and ML estimation failed; middle of histogram is nonnormal.')
 			else:
-				raise EstimationError('pd.isnull(fp0.loc[\'cmest\', 1])', 'ML estimation failed. Rerun with nulltype = 2.')
+				raise EstimationError('ML estimation failed. Rerun with nulltype = 2.')
 		else:
 			wa.warn('ML estimation failed.')
 	if nulltype < 2:
@@ -290,7 +344,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 		elif nulltype == 2:
 			Ilfdr = Cov2_out['Ilfdr']
 		else:
-			raise InputError('if sw == 3', 'When sw = 3, nulltype must be 0, 1, or 2.')
+			raise InputError('When sw = 3, nulltype must be 0, 1, or 2.')
 		return Ilfdr
 	if nulltype == 0:
 		Cov = Cov0_out['Cov']
@@ -317,7 +371,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			stdev = fp0.loc['cmeSD', [2, 0, 1]]
 			pds_ = Cov2_out['pds_'].transpose()
 		else:
-			raise InputError('if sw == 2', 'When sw = 2, nulltype must equal 0, 1, or 2.')
+			raise InputError('When sw = 2, nulltype must equal 0, 1, or 2.')
 		pds_ = pd.DataFrame(pds_, columns=['p0', 'delhat', 'sighat'])
 		pds = pd.Series(pds, index=['p0', 'delhat', 'sighat'])
  		stdev = pd.Series(stdev, index=['sdp0', 'sddelhat', 'sdsighat'])
@@ -334,9 +388,11 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	cdf1[1, :] = cdf1[1, :] / cdf1[1, -1]
 	cdf1 = cdf1.transpose()
 	if nulltype != 0:
-		mat = pd.DataFrame(np.vstack((x, fdr, Fdrl, Fdrr, f, f0, f00, fdr0, yall, lfdrse, f1)), index=['x', 'fdr', 'Fdrleft', 'Fdrright', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrse', 'p1f1'])
+		mat = pd.DataFrame(np.vstack((x, fdr, Fdrl, Fdrr, f, f0, f00, fdr0, yall, lfdrse, f1)), 
+			index=['x', 'fdr', 'Fdrleft', 'Fdrright', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrse', 'p1f1'])
 	else:
-		mat = pd.DataFrame(np.vstack((x, fdr, Fdrl, Fdrr, f, f0, f00, fdr0, yall, lfdrse, f1)), index=['x', 'fdr', 'Fdrltheo', 'Fdrrtheo', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrsetheo', 'p1f1'])
+		mat = pd.DataFrame(np.vstack((x, fdr, Fdrl, Fdrr, f, f0, f00, fdr0, yall, lfdrse, f1)), 
+			index=['x', 'fdr', 'Fdrltheo', 'Fdrrtheo', 'f', 'f0', 'f0theo', 'fdrtheo', 'counts', 'lfdrsetheo', 'p1f1'])
 	z_2 = np.array([np.nan, np.nan])
 	m = sorted([(i, el) for i, el in enumerate(fd)], key=lambda nn: nn[1])[-1][0]
 	if fd[-1] < 0.2:
@@ -348,7 +404,100 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	else:
 		nulldens = p0 * f0
 	yt = np.array([max(el, 0) for el in (yall * (1 - fd))])
-	#plot stuff here
+	# construct plots
+	if plot > 0:
+		try:
+			import matplotlib.pyplot as plt
+			import matplotlib.patches as patches
+			import matplotlib.path as path
+		except ImportError:
+			print 'matplotlib is required for plotting, but it was not found. Rerun with plot = 0 to turn off plots.'
+			print 'locfdr-python was tested on matplotlib 1.3.0.'
+			raise
+		fig = plt.figure(figsize=(14, 8))
+		if plot == 4:
+			histplot = fig.add_subplot(131)
+			fdrFdrplot = fig.add_subplot(132)
+			f1cdfplot = fig.add_subplot(133)
+		elif plot == 2 or plot == 3:
+			histplot = fig.add_subplot(121)
+			if plot == 2:
+				fdrFdrplot = fig.add_subplot(122)
+			else:
+				f1cdfplot = fig.add_subplot(122)
+		elif plot == 1:
+			histplot = fig.add_subplot(111)
+		# construct histogram
+		leftplt = breaks[:-1]
+		rightplt = breaks[1:]
+		bottomplt = np.zeros(len(leftplt))
+		topplt = bottomplt + y
+		XYplt = np.array([[leftplt,leftplt,rightplt,rightplt], [bottomplt,topplt,topplt,bottomplt]]).transpose()
+		barpath = path.Path.make_compound_path_from_polys(XYplt)
+		patch = patches.PathPatch(barpath, facecolor='white', edgecolor='#302f2f')
+		histplot.add_patch(patch)
+		histplot.set_xlim(leftplt[0], rightplt[-1])
+		histplot.set_ylim(-1.5, (topplt.max()+1.5) * 0.1 + topplt.max())
+		histplot.set_title(main)
+		for k in xrange(K):
+			histplot.plot([x[k], x[k]], [0, yt[k]], color='#e31d76', linewidth = 2)
+		if nulltype == 3:
+			histplot.set_xlabel('delta = ' + str(round(xmax, 3)) + ', sigleft = ' + str(round(sigs[0], 3))  
+				+ ', sigright = ' + str(round(sigs[1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest', 2], 3)))
+		if nulltype == 1 or nulltype == 2:
+			histplot.set_xlabel('MLE: delta = ' + str(round(mlests[0], 3)) + ', sigma = ' + str(round(mlests[1], 3))  
+				+ ', p0 = ' + str(round(mlests[2], 3)) + '\nCME: delta = ' + str(round(fp0.loc['cmest', 0], 3)) 
+				+  ', sigma = ' + str(round(fp0.loc['cmest', 1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest', 2], 3)))
+		histplot.set_ylabel('Frequency')
+		histplot.plot(x, f, color='#3bbf53', linewidth = 3)
+		if nulltype == 0:
+			histplot.plot(x, p0theo * f00, linewidth = 3, linestyle = 'dashed', color = 'blue')
+		else:
+			histplot.plot(x, p0 * f0, linewidth = 3, linestyle = 'dashed', color = 'blue')
+		if not pd.isnull(z_2[1]): 
+			histplot.plot([z_2[1]], [-0.5], marker = '^', markersize = 16, markeredgecolor = 'red', markeredgewidth = 1.3, color = 'yellow')
+		if not pd.isnull(z_2[0]): 
+			histplot.plot([z_2[0]], [-0.5], marker = '^', markersize = 16, markeredgecolor = 'red', markeredgewidth = 1.3, color = 'yellow')
+		if nulltype == 1 or nulltype == 2:
+			Ef = Efdr[0]
+		elif nulltype == 0: 
+			Ef = Efdr[3]
+		# construct fdr + Fdr plot
+		if plot == 2 or plot == 4:
+			if nulltype == 0:
+				fdd = fdr0
+			else:
+				fdd = fdr
+			fdrFdrplot.plot(x, fdd, linewidth = 3, color = 'black')
+			fdrFdrplot.plot(x, Fdrl, linewidth = 3, color = 'red', linestyle = 'dashed')
+			fdrFdrplot.plot(x, Fdrr, linewidth = 3, color = 'green', linestyle = 'dashed')
+			fdrFdrplot.set_ylim(-0.05, 1.1)
+			fdrFdrplot.set_title('fdr (solid); Fdr\'s (dashed)')
+			fdrFdrplot.set_xlabel('Efdr = ' + str(round(Ef, 3)))
+			fdrFdrplot.set_ylabel('fdd (black), Fdrl (red), and Fdrr (green)')
+			fdrFdrplot.plot([0, 0], [0, 1], linestyle = 'dotted', color = 'red')
+			fdrFdrplot.axhline(linestyle = 'dotted', color = 'red')
+		# construct plot of f1 cdf of estimated fdr curve
+		if plot == 3 or plot == 4:
+			if sum([1 for el in cdf1[:, 1] if pd.isnull(el)]) == cdf1.shape[0]:
+				wa.warning('cdf1 is not available.')
+			else:
+				f1cdfplot.plot(cdf1[:, 0], cdf1[:, 1], linewidth = 3, color = 'black')
+				f1cdfplot.set_xlabel('fdr level\nEfdr = ' + str(round(Ef, 3)))
+				f1cdfplot.set_ylabel('f1 proportion < fdr level')
+				f1cdfplot.set_title('f1 cdf of estimated fdr')
+				f1cdfplot.set_ylim(0, 1)
+				f1cdfplot.plot([0.2, 0.2], [0, cdf1[19, 1]], color = 'blue', linestyle = 'dashed')
+				f1cdfplot.plot([0, 0.2], [cdf1[19, 1], cdf1[19, 1]], color = 'blue', linestyle = 'dashed')
+				f1cdfplot.text(0.05, cdf1[19, 1], str(round(cdf1[19, 1], 2)))
+		if saveplot:
+			if savestamp:
+				import time, datetime
+				plt.savefig(saveroot + '_' + '-'.join(str(el) for el in list(tuple(datetime.datetime.now().timetuple())[:6])) + '.' + saveext)
+			else:
+				plt.savefig(saveroot + '.' + saveext)
+		if showplot:
+			plt.show()
 	if nulltype == 0:
 		ffdr = rf.approx(x, fdr0, zz, rule = 2, ties = 'ordered')
 	else:
