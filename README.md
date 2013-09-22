@@ -51,3 +51,7 @@ Start the Python interpreter, and enter
     >>> execfile('example.py')
 
 This is precisely the simulation of Section 4 from http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf . Compare with results in R.
+
+More details
+-----------------
+See the locfdr pydoc, or view the source of locfdr.py .
