@@ -46,7 +46,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	This is Abhinav Nellore's Python implementation of the R function locfdr() v1.1.7, originally written by Bradley Efron, 
 	Brit B. Turnbull, and Balasubramanian Narasimhan; and later enhanced by Alyssa Frazee and Leonardo Collado-Torres 
 	(see https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R ). It is licensed under the MIT license.
-	See LICENSE.TXT for more information.
+	See LICENSE.txt for more information.
 	
 	The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that
 	period is replaced by an underscore here. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)
