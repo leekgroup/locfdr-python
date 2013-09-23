@@ -1,4 +1,4 @@
-# Rfunctions.py: mimics functionality of R for locfdr.py
+# Rfunctions.py: mimics functionality of R functions used by locfdr.py
 # Part of locfdr-python, http://www.github.com/buci/locfdr-python/
 #
 # Copyright (C) 2013 Abhinav Nellore (anellore@gmail.com)
