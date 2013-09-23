@@ -1,6 +1,6 @@
 from locfdr import locfdr
 
-f = open('sampledata.tsv')
+f = open('samplez.tsv')
 zz = []
 
 for line in f:
