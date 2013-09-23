@@ -1,3 +1,23 @@
+# locmle.py: computes mles of p0, sig0, and del0 for locfdr.py
+# Part of locfdr-python, http://www.github.com/buci/locfdr-python/
+#
+# Copyright (C) 2013 Abhinav Nellore (anellore@gmail.com)
+# Copyright (C) 2011 Bradley Efron, Brit B. Turnbull and Balasubramanian Narasimhan
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details
+#
+# You should have received a copy of the GNU General Public License
+# along with this program in the file COPYING. If not, write to 
+# the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+# Boston, MA 02111-1307 USA
+
 try:
 	import numpy as np
 except ImportError:

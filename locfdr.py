@@ -1,3 +1,24 @@
+# locfdr.py: computes local false discovery rates
+# Part of locfdr-python, http://www.github.com/buci/locfdr-python/
+#
+# Copyright (C) 2013 Abhinav Nellore (anellore@gmail.com)
+# Copyright (C) 2013 Alyssa Frazee, Leonardo Collado-Torres, and Jeffrey Leek
+# Copyright (C) 2011 Bradley Efron, Brit B. Turnbull and Balasubramanian Narasimhan
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v2 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details
+#
+# You should have received a copy of the GNU General Public License
+# along with this program in the file COPYING. If not, write to 
+# the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+# Boston, MA 02111-1307 USA
+
 try:
 	import numpy as np
 except ImportError:
@@ -44,9 +65,9 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	"""Computes local false discovery rates.
 
 	This is Abhinav Nellore's Python implementation of the R function locfdr() v1.1.7, originally written by Bradley Efron, 
-	Brit B. Turnbull, and Balasubramanian Narasimhan; and later enhanced by Alyssa Frazee and Leonardo Collado-Torres 
-	(see https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R ). It is licensed under the MIT license.
-	See LICENSE.txt for more information.
+	Brit B. Turnbull, and Balasubramanian Narasimhan; and later enhanced by Alyssa Frazee, Leonardo Collado-Torres, and Jeffrey Leek 
+	(see https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R ). It is licensed under the GNU GPL v2.
+	See COPYING for more information.
 	
 	The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that
 	period is replaced by an underscore here. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)

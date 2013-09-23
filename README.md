@@ -7,7 +7,7 @@ This port is very literal interpretation of the augmented version of locfdr at h
 
 Requirements: Python 2.7.x, scipy, numpy, matplotlib, pandas, and statsmodels. The code was tested on the latest version of Anaconda as of 9/14/2013, which contains Python 2.7.5, scipy 0.12.0, numpy 1.7.1, pandas 0.12.0, statsmodels 0.5.0, and matplotlib 1.3.0. This distribution is available at https://store.continuum.io/cshop/anaconda/.
 
-THIS SOFTWARE IS LICENSED UNDER THE MIT LICENSE. See LICENSE.txt for more information.
+THIS SOFTWARE IS LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE VERSION 2. See COPYING for more information.
 
 Installation
 ------------------
