@@ -4,7 +4,7 @@
 # Part of locfdr-python, http://www.github.com/buci/locfdr-python/
 #
 # Copyright (C) 2013 Abhinav Nellore (anellore@gmail.com)
-# Copyright (C) 2011 Bradley Efron, Brit B. Turnbull and Balasubramanian Narasimhan
+# Copyright (C) 2011 Bradley Efron, Brit B. Turnbull, and Balasubramanian Narasimhan
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License v2 as published by
