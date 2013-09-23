@@ -11,10 +11,10 @@ setup(name = "locfdr-python",
     url = "http://www.github.com/buci",
     download_url = "https://github.com/buci/locfdr-python",
     platforms = ['any'],
-    license = "MIT",
+    license = "GPLv2",
     py_modules = ['locfdr', 'locfns', 'Rfunctions'],
     classifiers = [
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Development Status :: 5 - Production/Stable',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python']
