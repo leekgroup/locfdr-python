@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="locfdr-python : Python implementation of locfdr v1.1-7, which computes local false discovery rates." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>locfdr-python</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/buci/locfdr-python">View on GitHub</a>
+
+          <h1 id="project_title">locfdr-python</h1>
+          <h2 id="project_tagline">Python implementation of locfdr v1.1-7, which computes local false discovery rates.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/buci/locfdr-python/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/buci/locfdr-python/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="locfdr-python-v01" class="anchor" href="#locfdr-python-v01"><span class="octicon octicon-link"></span></a>locfdr-python v0.1</h1>
+
+<p>locfdr-python is a Python variant of Efron, Turnbull, and Narasimhan's R function locfdr() v1.1-7, which computes local false discovery rates. See <a href="http://cran.r-project.org/web/packages/locfdr/">http://cran.r-project.org/web/packages/locfdr/</a> for more information.</p>
+
+<p>This port is very literal interpretation of Frazee, Collado-Torres, and Leek's augmented version of locfdr at <a href="https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R">https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R</a> : the organization of the code parallels the original where efficient, and variable and function names are the same as in R. Rfunctions.py contains Python functions designed to mimic R's idiosyncratic implementations of interpolation.</p>
+
+<p>Requirements: Python 2.7.x, scipy, numpy, matplotlib, pandas, and statsmodels. The code was tested on the latest version of Anaconda as of 9/14/2013, which contains Python 2.7.5, scipy 0.12.0, numpy 1.7.1, pandas 0.12.0, statsmodels 0.5.0, and matplotlib 1.3.0. This distribution is available at <a href="https://store.continuum.io/cshop/anaconda/">https://store.continuum.io/cshop/anaconda/</a>.</p>
+
+<p>THIS SOFTWARE IS LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE VERSION 2. See COPYING for more information.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Download zip or tarball, unpack all files in the same directory, and run</p>
+
+<pre><code>python setup.py install
+</code></pre>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<pre><code>from locfdr import locfdr
+# Here, initialize zz, a list or numpy array of summary statistics
+results = locfdr(zz)
+</code></pre>
+
+<h3>
+<a name="r-vs-python" class="anchor" href="#r-vs-python"><span class="octicon octicon-link"></span></a>R vs. Python</h3>
+
+<p>The port is relatively faithful. Variable names are almost precisely the same; if the original variable name contained a period, that period is replaced by an underscore in the Python. (So 'Cov2.out' in the R is 'Cov2_out' in the Python.)</p>
+
+<p>To access returned values:</p>
+
+<p>(R)</p>
+
+<pre><code>results = locfdr(...)
+results$fdr
+results$z.2
+</code></pre>
+
+<p>(Corresponding Python)</p>
+
+<pre><code>results = locfdr(...)
+results['fdr']
+results['z_2']
+</code></pre>
+
+<p>Some returned values are pandas Series and DataFrames. An introduction to pandas data structures is available at <a href="http://pandas.pydata.org/pandas-docs/dev/dsintro.html">http://pandas.pydata.org/pandas-docs/dev/dsintro.html</a> .</p>
+
+<h3>
+<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h3>
+
+<p>Start the Python interpreter, and enter</p>
+
+<pre><code>&gt;&gt;&gt; execfile('example.py')
+</code></pre>
+
+<p>This is the simulation of Section 4 from <a href="http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf">http://cran.r-project.org/web/packages/locfdr/vignettes/locfdr-example.pdf</a> . Compare with results in R.</p>
+
+<h2>
+<a name="more-details" class="anchor" href="#more-details"><span class="octicon octicon-link"></span></a>More details</h2>
+
+<p>See the locfdr pydoc, or view the source of locfdr.py .</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">locfdr-python maintained by <a href="https://github.com/buci">buci</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-28011603-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
