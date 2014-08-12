@@ -259,7 +259,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			wa.warn('Discrepancy between central matching and maximum likelihood estimates. Consider rerunning with nulltype = 1.')
 	if pd.isnull(mlests[0]):
 		if nulltype == 1:
-			if pd.isnull(fp0.loc['cmest', 1]):
+			if pd.isnull(fp0.loc['cmest'][1]):
 				raise EstimationError('CM and ML estimation failed; middle of histogram is nonnormal.')
 			else:
 				raise EstimationError('ML estimation failed. Rerun with nulltype = 2.')
@@ -376,20 +376,20 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 	lfdrse = np.sqrt(np.diag(Cov))
 	fp0.loc['cmeSD'][0:3] = Cov2_out.loc['stdev'][[1,2,0]]
 	if nulltype == 3:
-		fp0.loc['cmeSD', 3] = fp0['cmeSD', 1]
-	fp0.loc['theSD', 2] = Cov0_out['stdev'][0]
+		fp0.loc['cmeSD'][3] = fp0['cmeSD'][1]
+	fp0.loc['theSD'][2] = Cov0_out['stdev'][0]
 	if sw == 2:
 		if nulltype == 0:
-			pds = fp0.loc['thest', [2, 0, 1]]
-			stdev = fp0.loc['theSD', [2, 0, 1]]
+			pds = fp0.loc['thest'][[2, 0, 1]]
+			stdev = fp0.loc['theSD'][[2, 0, 1]]
 			pds_ = Cov0_out['pds_'].transpose()
 		elif nulltype == 1:
-			pds = fp0.loc['mlest', [2, 0, 1]]
-			stdev = fp0.loc['mleSD', [2, 0, 1]]
+			pds = fp0.loc['mlest'][[2, 0, 1]]
+			stdev = fp0.loc['mleSD'][[2, 0, 1]]
 			pds_ = ml_out['pds_'].transpose()
 		elif nulltype == 2:
-			pds = fp0.loc['cmest', [2, 0, 1]]
-			stdev = fp0.loc['cmeSD', [2, 0, 1]]
+			pds = fp0.loc['cmest'][[2, 0, 1]]
+			stdev = fp0.loc['cmeSD'][[2, 0, 1]]
 			pds_ = Cov2_out['pds_'].transpose()
 		else:
 			raise InputError('When sw = 2, nulltype must equal 0, 1, or 2.')
@@ -464,11 +464,11 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			histplot.plot([x[k], x[k]], [0, yt[k]], color='#e31d76', linewidth = 2)
 		if nulltype == 3:
 			histplot.set_xlabel('delta = ' + str(round(xmax, 3)) + ', sigleft = ' + str(round(sigs[0], 3))  
-				+ ', sigright = ' + str(round(sigs[1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest', 2], 3)))
+				+ ', sigright = ' + str(round(sigs[1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest'][2], 3)))
 		if nulltype == 1 or nulltype == 2:
 			histplot.set_xlabel('MLE: delta = ' + str(round(mlests[0], 3)) + ', sigma = ' + str(round(mlests[1], 3))  
-				+ ', p0 = ' + str(round(mlests[2], 3)) + '\nCME: delta = ' + str(round(fp0.loc['cmest', 0], 3)) 
-				+  ', sigma = ' + str(round(fp0.loc['cmest', 1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest', 2], 3)))
+				+ ', p0 = ' + str(round(mlests[2], 3)) + '\nCME: delta = ' + str(round(fp0.loc['cmest'][0], 3)) 
+				+  ', sigma = ' + str(round(fp0.loc['cmest'][1], 3)) + ', p0 = ' + str(round(fp0.loc['cmest'][2], 3)))
 		histplot.set_ylabel('Frequency')
 		histplot.plot(x, f, color='#3bbf53', linewidth = 3)
 		if nulltype == 0:
