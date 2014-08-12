@@ -5,7 +5,7 @@ Python variant of Efron, Turnbull, and Narasimhan's R function locfdr() v1.1-7, 
 
 This port is very literal interpretation of Frazee, Collado-Torres, and Leek's augmented version of locfdr at https://github.com/alyssafrazee/derfinder/blob/master/R/locfdrFit.R : the organization of the code parallels the original where efficient, and variable and function names are the same as in R. Rfunctions.py contains Python functions designed to mimic R's idiosyncratic implementations of interpolation.
 
-Requirements: Python 2.7.x, scipy, numpy, matplotlib, pandas, and statsmodels. The code was tested on the latest version of Anaconda as of 9/14/2013, which contains Python 2.7.5, scipy 0.12.0, numpy 1.7.1, pandas 0.12.0, statsmodels 0.5.0, and matplotlib 1.3.0. This distribution is available at https://store.continuum.io/cshop/anaconda/.
+Requirements: Python 2.7.x, scipy, numpy, matplotlib, pandas, and statsmodels. The code was tested on the latest version of Anaconda as of 8/12/2014, which contains Python 2.7.7, scipy 0.14.0, numpy 1.8.1, pandas 0.14.0, statsmodels 0.5.0, and matplotlib 1.3.1. This distribution is available at https://store.continuum.io/cshop/anaconda/.
 
 THIS SOFTWARE IS LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE VERSION 2. See COPYING for more information.
 
