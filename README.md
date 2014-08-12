@@ -1,5 +1,5 @@
-locfdr-python v0.1
-==================
+locfdr-python v0.1a
+===================
 
 Python variant of Efron, Turnbull, and Narasimhan's R function locfdr() v1.1-7, which computes local false discovery rates. See http://cran.r-project.org/web/packages/locfdr/ for more information.
 
