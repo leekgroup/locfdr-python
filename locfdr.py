@@ -171,7 +171,7 @@ def locfdr(zz, bre = 120, df = 7, pct = 0., pct0 = 1./4, nulltype = 1, type = 0,
 			columns=['delta', 'sigma', 'p0'])
 	fp0.loc['thest'][0:2] = np.array([0,1])
 	fp0.loc['theSD'][0:2] = 0
-	imax = np.where(max(l)==l)[0][0]
+	imax = l.argmax()
 	xmax = x[imax]
 	try:
 		len(pct)
